@@ -1,0 +1,103 @@
+.content-box-posts {
+    border: 1px solid #eae7e7;
+    font-size: 1.4rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 1rem;
+    background-color: #fffbfb;
+    box-shadow: 0.1rem 0.2rem 1rem rgb(228, 224, 224);
+    margin-left: 25%;
+    margin-right: 25%;
+    overflow: hidden; 
+}
+
+.content-box-posts a {
+    text-decoration: none;
+    font-weight: 500;
+    color: #156064;
+    display: block;
+}
+
+.content-box-posts {
+    border: 1px solid #eae7e7;
+    font-size: 1.4rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 1rem;
+    background-color: #fffbfb;
+    box-shadow: 0.1rem 0.2rem 1rem rgb(228, 224, 224);
+    margin-left: 25%;
+    margin-right: 25%;
+    overflow: hidden; 
+}
+
+.content-box-users h3 {
+    margin: 0;
+    color: #555;
+}
+
+.avatar {
+    float: left;
+    width: 3rem;
+    height: 3rem;
+    padding: 0.2rem;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.avatar img {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    border-radius: 50%;
+}
+
+@media (max-width: 1250px) {
+    .content-box-posts {
+        margin-left: 10%;
+        margin-right: 10%;
+    }
+}
+
+.post-image {
+    width: 40rem;
+    height: auto;
+    display: block;
+    margin: 1rem auto;
+    object-fit: cover; 
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+}
+
+
+.data-container {
+    display: flex;
+    gap: 1rem; 
+    margin-top: 1rem;
+}
+
+.data-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.data-icon {
+    width: 1.5rem;
+    height: auto;
+}
+
+.post-body {
+    font-size: 1.2rem;
+    line-height: 1.5;
+    margin-top: 1rem;
+    color: #333;
+    text-align: justify;
+    margin-left: 2rem;
+    margin-bottom: 2rem;
+}

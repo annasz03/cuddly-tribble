@@ -1,0 +1,110 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+}
+
+.leftA {
+  flex: 1;
+  position: relative;
+  background-color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.rightA {
+  flex: 1.5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-image: url("../../assets/gradient.jpeg");
+  background-size: cover;
+}
+
+.logo {
+  position: absolute;
+  top: 5rem;
+  left: 5rem;
+  width: 25rem;
+}
+
+.subtext {
+  position: absolute;
+  top: 14rem;
+  left: 5rem;
+  width: 38rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+input {
+  width: 50%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 1rem;
+}
+
+.button-group {
+  display: flex;
+  justify-content: right;
+  gap: 0.5rem;
+}
+
+button {
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background-color: #FB8F67;
+  color: #fff;
+  cursor: pointer;
+  width: 6rem;
+}
+
+button.reg {
+  background-color: #fb8e67ae !important;
+}
+
+button:hover {
+  background-color: #F8E16C;
+}
+
+.reg:hover {
+  background-color: #F8E16C !important;
+}
+
+h2 {
+  margin-top: 1rem !important;
+}

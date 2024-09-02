@@ -1,0 +1,9 @@
+<div *ngIf="post">
+    <h1>{{ post?.postBody }}</h1>
+    <p>Posted by: {{ post?.postedBy }}</p>
+    <p>Likes: {{ post?.like }}</p>
+    <p>Comments: {{ post?.comment }}</p>
+    <p>Views: {{ post?.views }}</p>
+    <p>Date: {{ post?.date | date }}</p>
+  </div>
+  

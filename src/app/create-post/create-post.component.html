@@ -1,0 +1,17 @@
+<div class="content-box">
+    <div class="header">
+        <img src="../../assets/avatar.jpg" class="avatar">
+        <h3>{{ currentUser?.name }}</h3> 
+    </div>
+    <form (ngSubmit)="onPost()">
+        <div>
+            <textarea name="Text1" [(ngModel)]="body" cols="40" rows="5" class="postBody"></textarea>
+        </div>
+        <div>
+            <input type="file" (change)="onFileSelected($event)" accept="image/*">
+        </div>
+        <div>
+            <button type="submit">Post</button>
+        </div>
+    </form>
+</div>

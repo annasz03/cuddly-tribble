@@ -1,0 +1,90 @@
+<aside>
+  <app-sidebar></app-sidebar>
+</aside>
+
+<div *ngIf="viewingUser;">
+  <div class="profile-container">
+    <div class="background-container">
+      <img 
+        [src]="viewingUser.header ? bufferToImageUrl(viewingUser.header) : '../../assets/background.jpeg'" 
+        alt="Header Image" 
+        class="background" />
+    </div>
+    <div class="profile-content">
+      <img 
+        [src]="viewingUser.profilePic ? bufferToImageUrl(viewingUser.profilePic) : '../../assets/avatar.jpg'" 
+        alt="Profile Picture"  
+        class="avatar"/>
+      
+      <h2 class="username">{{ viewingUser.name }}</h2>
+
+      <img *ngIf="isLoggedInUserProfile()" src="../../assets/settings.png" alt="Settings" class="settings" (click)="toggleEditMode()">
+
+      <p class="bio">{{ viewingUser.bio }}</p>
+
+      <img src="../../assets/listing1.png" alt="Grid View" class="buttns" (click)="setView('grid')">
+      <img src="../../assets/listing2.png" alt="List View" class="buttns" (click)="setView('list')">
+
+      <div [ngClass]="{'pictures-grid': viewMode === 'grid', 'pictures-list': viewMode === 'list'}">
+        <div *ngFor="let post of postsWithUser" class="picture-item">
+          <img *ngIf="post.postImageUrl" [src]="post.postImageUrl" alt="Post image" class="post">
+          <div class="description" *ngIf="viewMode !== 'grid'">
+            <img src="../../assets/like.png" alt="Likes" class="data">{{ post.like || 0 }}
+            <img src="../../assets/comment.png" alt="Comments" class="data">{{ post.comment || 0 }}
+            {{ post.description }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #editMode>
+    <form *ngIf="currentUser" (ngSubmit)="saveProfile()" class="settingForm">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" [(ngModel)]="currentUser.name" id="name" name="name" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" [(ngModel)]="currentUser.username" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="profilePic">Profile Picture</label>
+        <input type="file" (change)="handleProfilePicChange($event)" accept="image/*" id="profilePic" name="profilePic">
+      </div>
+      
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="text" id="email" name="email" [(ngModel)]="currentUser.email" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" [(ngModel)]="password" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="password2">Password again</label>
+        <input type="password" id="password2" name="password2" [(ngModel)]="password2" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="bio">Bio</label>
+        <input type="text" id="bio" name="bio" [(ngModel)]="currentUser.bio">
+      </div>
+      
+      <div class="form-group">
+        <label for="header">Background</label>
+        <input type="file" (change)="handleHeaderChange($event)" accept="image/*" id="header" name="header">
+      </div>
+      
+      <button type="submit">Save</button>
+
+      <div *ngIf="passwordMismatch" class="error-message">
+        Passwords do not match!
+      </div>
+    </form>
+  </ng-template>
+</div>

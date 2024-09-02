@@ -1,0 +1,38 @@
+onSubmit() {
+    if (this.myForm.valid) {
+      const formData = this.myForm.value;
+
+      // Adatok Excel fájlba mentése és letöltése
+      this.exportToExcel([formData], 'form-data');
+      
+      // Tisztítjuk a formot a következő használathoz
+      this.myForm.reset();
+    } else {
+      console.log('Form is not valid');
+    }
+  }
+
+  exportToExcel(data: any[], fileName: string): void {
+    // Az adatokat egy worksheet-be helyezzük
+    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data);
+    
+    // Egy új workbookot hozunk létre, amely tartalmazza a worksheet-et
+    const workbook: XLSX.WorkBook = {
+      Sheets: { 'data': worksheet },
+      SheetNames: ['data']
+    };
+    
+    // A workbookot Excel fájllá alakítjuk
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    
+    // Az Excel fájlt letöltjük
+    this.saveAsExcelFile(excelBuffer, fileName);
+  }
+
+  saveAsExcelFile(buffer: any, fileName: string): void {
+    const data: Blob = new Blob([buffer], { type: EXCEL_TYPE });
+    saveAs(data, `${fileName}.xlsx`);
+  }
+}
+
+const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';

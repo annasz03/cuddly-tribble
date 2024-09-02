@@ -1,0 +1,26 @@
+<ng-container *ngFor="let post of postsWithUser">
+  <div class="content-box-posts" *ngIf="post.user as user">
+    <div class="avatar">
+      <img [src]="user.profilePic ? bufferToImageUrl(user.profilePic) : '../../assets/avatar.png'" alt="Profile Picture">
+    </div>
+    <h3>
+      <a [routerLink]="['/profile', user.id]">{{ user.name }}</a>
+    </h3>
+    <img *ngIf="post.postImageUrl" [src]="post.postImageUrl" alt="Post image" class="post-image">
+    <div class="data-container">
+      <div class="data-item">
+        <img 
+          [src]="post.liked ? '../../assets/liked.png' : '../../assets/like.png'" 
+          alt="Likes" 
+          class="data-icon" 
+          (click)="likePost(post.id)">
+        {{ post.like || 0 }}
+      </div>
+      <div class="data-item">
+        <img src="../../assets/comment.png" alt="Comments" class="data-icon">
+        {{ post.comment || 0 }}
+      </div>
+    </div>
+    <p class="post-body">{{ post.postBody }}</p> 
+  </div>
+</ng-container>
