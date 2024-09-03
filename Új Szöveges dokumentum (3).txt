@@ -1,0 +1,100 @@
+<label for="date-input">Select Day:</label>
+<input type="date" id="date-input" name="date-input">
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0'); 
+
+    const dateInput = document.getElementById('date-input');
+
+
+    dateInput.min = `${year}-${month}-01`;
+    dateInput.max = `${year}-${month}-31`; // Maximum nap 31, de a böngésző automatikusan kezeli a hónap hosszát
+
+
+    dateInput.value = `${year}-${month}-${day}`;
+  });
+</script>
+
+
+//spring boot
+
+package com.example.demo.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api")
+public class HelloWorldController {
+
+    @GetMapping("/hello")
+    public String sayHello() {
+        return "Hello from Java backend!";
+    }
+}
+
+
+//cors
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/api/**")
+                .allowedOrigins("http://localhost:4200")  // Angular alkalmazás URL-je
+                .allowedMethods("GET", "POST", "PUT", "DELETE")
+                .allowedHeaders("*")
+                .allowCredentials(true);
+    }
+}
+
+httpclientmodule import app-ba
+
+ng generate service data
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DataService {
+
+  private apiUrl = 'http://localhost:8080/api/hello';
+
+  constructor(private http: HttpClient) { }
+
+  getHelloMessage(): Observable<string> {
+    return this.http.get(this.apiUrl, { responseType: 'text' });
+  }
+}
+
+import { Component, OnInit } from '@angular/core';
+import { DataService } from './data.service';
+
+@Component({
+  selector: 'app-root',
+  template: `<h1>{{ message }}</h1>`,
+})
+export class AppComponent implements OnInit {
+  message: string;
+
+  constructor(private dataService: DataService) {}
+
+  ngOnInit(): void {
+    this.dataService.getHelloMessage().subscribe(response => {
+      this.message = response;
+    });
+  }
+}
+
