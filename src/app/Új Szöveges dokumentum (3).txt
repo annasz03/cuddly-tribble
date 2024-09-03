@@ -1,0 +1,20 @@
+<label for="date-input">Select Day:</label>
+<input type="date" id="date-input" name="date-input">
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0'); 
+
+    const dateInput = document.getElementById('date-input');
+
+
+    dateInput.min = `${year}-${month}-01`;
+    dateInput.max = `${year}-${month}-31`; // Maximum nap 31, de a böngésző automatikusan kezeli a hónap hosszát
+
+
+    dateInput.value = `${year}-${month}-${day}`;
+  });
+</script>
