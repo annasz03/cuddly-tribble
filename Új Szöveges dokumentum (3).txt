@@ -247,3 +247,32 @@ public class FileUploadController {
         }
     }
 }
+
+//parse
+
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class MyService {
+
+  constructor(private http: HttpClient) { }
+
+  sendData() {
+    const headers = new HttpHeaders({ 'Content-Type': 'text/plain' });
+    const body = '1;1;1';
+
+    this.http.post('http://localhost:8080/api/postsofor', body, { headers, responseType: 'text' })
+      .subscribe(
+        response => {
+          console.log('Response:', response);
+        },
+        error => {
+          console.error('Error:', error);
+        }
+      );
+  }
+}
+
