@@ -98,3 +98,152 @@ export class AppComponent implements OnInit {
   }
 }
 
+///
+
+<form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
+  <input type="file" formControlName="file" (change)="onFileSelect($event)" />
+  <button type="submit">Upload</button>
+</form>
+
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+
+@Component({
+  selector: 'app-file-upload',
+  templateUrl: './file-upload.component.html',
+})
+export class FileUploadComponent {
+  uploadForm: FormGroup;
+  selectedFile: File;
+
+  constructor(private formBuilder: FormBuilder, private http: HttpClient) {
+    this.uploadForm = this.formBuilder.group({
+      file: ['']
+    });
+  }
+
+  onFileSelect(event) {
+    this.selectedFile = event.target.files[0];
+  }
+
+  onSubmit() {
+    const formData = new FormData();
+    formData.append('file', this.selectedFile);
+
+    this.http.post('http://localhost:8080/upload', formData).subscribe(
+      (response) => console.log(response),
+      (error) => console.error(error)
+    );
+  }
+}
+
+spring.servlet.multipart.enabled=true
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+
+
+//filet elkuldi backendnek
+
+import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+@Component({
+  selector: 'app-file-upload',
+  templateUrl: './file-upload.component.html',
+})
+export class FileUploadComponent {
+  constructor(private http: HttpClient) {}
+
+  createAndSendFile() {
+    // Fájl tartalma
+    const fileContent = 'Ez egy teszt fájl tartalma.';
+    
+    // Fájl létrehozása Blob segítségével
+    const blob = new Blob([fileContent], { type: 'text/plain' });
+
+    // Fájl névvel való ellátása
+    const file = new File([blob], 'testfile.txt', { type: 'text/plain' });
+
+    // FormData létrehozása és a fájl hozzáadása
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Fájl elküldése a backendre
+    this.http.post('http://localhost:8080/upload', formData).subscribe(
+      (response) => console.log(response),
+      (error) => console.error(error)
+    );
+  }
+}
+
+
+<button (click)="createAndSendFile()">Create and Upload File</button>
+
+
+@PostMapping("/upload")
+public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
+    if (file.isEmpty()) {
+        return new ResponseEntity<>("Please select a file to upload", HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+        byte[] bytes = file.getBytes();
+        Path path = Paths.get("uploads/" + file.getOriginalFilename());
+        Files.write(path, bytes);
+
+        return new ResponseEntity<>("File uploaded successfully: " + file.getOriginalFilename(), HttpStatus.OK);
+    } catch (IOException e) {
+        return new ResponseEntity<>("File upload failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+
+//append
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+@RestController
+public class FileUploadController {
+
+    private static final String UPLOAD_DIR = "uploads/";
+    private static final String TARGET_FILE_NAME = "merged_file.txt"; // A cél fájl neve
+
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return new ResponseEntity<>("Please select a file to upload", HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            // Cél fájl elérési útvonala
+            Path targetPath = Paths.get(UPLOAD_DIR + TARGET_FILE_NAME);
+            
+            // Ha a fájl nem létezik, létrehozzuk
+            if (!Files.exists(targetPath)) {
+                Files.createFile(targetPath);
+            }
+
+            // Fájl tartalmának hozzáfűzése a meglévő fájlhoz
+            try (FileOutputStream fos = new FileOutputStream(new File(targetPath.toString()), true)) {
+                fos.write(file.getBytes());
+                fos.write(System.lineSeparator().getBytes()); // Új sor hozzáadása minden egyes fájl végén
+            }
+
+            return new ResponseEntity<>("File content appended successfully to: " + TARGET_FILE_NAME, HttpStatus.OK);
+        } catch (IOException e) {
+            return new ResponseEntity<>("File upload failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+}
