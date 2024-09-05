@@ -276,3 +276,126 @@ export class MyService {
   }
 }
 
+//vissza kuldes
+
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api")
+public class FileController {
+
+    @GetMapping("/download-file")
+    public ResponseEntity<Resource> downloadFile() {
+        try {
+            // Fájl betöltése az erőforrások közül (pl. classpath-ból)
+            Resource file = new ClassPathResource("static/sample.txt");
+
+            // HTTP válasz beállítása: fájl küldése szöveges típusúként
+            return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
+                .body(file);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+}
+
+
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api")
+public class FileController {
+
+    @GetMapping("/download-file")
+    public ResponseEntity<Resource> downloadFile() {
+        try {
+            Resource file = new ClassPathResource("static/sample.txt");
+
+            return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
+                .body(file);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+}
+
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class FileDownloadService {
+
+  constructor(private http: HttpClient) { }
+
+  downloadFileContent() {
+    this.http.get('http://localhost:8080/api/download-file', { responseType: 'blob' })
+      .subscribe(
+        (response: Blob) => {
+          this.readFileContent(response);
+        },
+        error => {
+          console.error('Error downloading file:', error);
+        }
+      );
+  }
+
+  // Fájl tartalmának beolvasása változóba
+  private readFileContent(blob: Blob) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const fileContent = reader.result as string;  // A fájl tartalma stringként
+      console.log('File content:', fileContent);    // Itt dolgozhatsz a tartalommal
+    };
+    reader.readAsText(blob);  // Ha a fájl szöveg, használjuk a readAsText metódust
+  }
+}
+
+//fileba ira
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Arrays;
+
+public class FileWriteExample {
+    public static void main(String[] args) {
+        Path filePath = Paths.get("output.txt");  // Fájl elérési útvonala
+
+        // Adatok, amelyeket írni szeretnénk
+        List<String> lines = Arrays.asList("Sor 1", "Sor 2", "Sor 3");
+
+        try {
+            // Írás a fájlba
+            Files.write(filePath, lines, StandardCharsets.UTF_8);
+            System.out.println("Fájlba írás sikeres!");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
