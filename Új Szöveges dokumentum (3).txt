@@ -397,5 +397,148 @@ public class FileWriteExample {
     }
 }
 
+//file feltoltes
+
+// file-upload.interface.ts
+export interface FileUpload {
+  file1: string;  // Base64 formátumban az első fájl
+  file2: string;  // Base64 formátumban a második fájl
+}
+
+
+<form (submit)="onSubmit()">
+  <label for="file1">Fájl 1:</label>
+  <input type="file" id="file1" (change)="onFileSelected($event, 'file1')" />
+
+  <label for="file2">Fájl 2:</label>
+  <input type="file" id="file2" (change)="onFileSelected($event, 'file2')" />
+
+  <button type="submit">Fájlok elküldése</button>
+</form>
+
+// file-upload.component.ts
+import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { FileUpload } from './file-upload.interface';
+
+@Component({
+  selector: 'app-file-upload',
+  templateUrl: './file-upload.component.html'
+})
+export class FileUploadComponent {
+  fileData: FileUpload = { file1: '', file2: '' };
+
+  constructor(private http: HttpClient) {}
+
+  onFileSelected(event: Event, fileTag: string): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        if (fileTag === 'file1') {
+          this.fileData.file1 = base64String.split(',')[1]; // Base64 tartalom leválasztása
+        } else if (fileTag === 'file2') {
+          this.fileData.file2 = base64String.split(',')[1];
+        }
+      };
+      reader.readAsDataURL(file); // Base64-re konvertálás
+    }
+  }
+
+  onSubmit(): void {
+    this.http.post('http://localhost:8080/api/upload', this.fileData)
+      .subscribe(response => {
+        console.log('Fájlok sikeresen elküldve!', response);
+      }, error => {
+        console.error('Hiba a fájlok elküldésekor:', error);
+      });
+  }
+}
+
+// FileUploadDto.java
+public class FileUploadDto {
+    private String file1;
+    private String file2;
+
+    // Getters and setters
+    public String getFile1() {
+        return file1;
+    }
+
+    public void setFile1(String file1) {
+        this.file1 = file1;
+    }
+
+    public String getFile2() {
+        return file2;
+    }
+
+    public void setFile2(String file2) {
+        this.file2 = file2;
+    }
+}
+
+// FileUploadController.java
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api")
+public class FileUploadController {
+
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadFiles(@RequestBody FileUploadDto fileUploadDto) {
+        // A fájlok feldolgozása itt történik
+        System.out.println("File 1 (Base64): " + fileUploadDto.getFile1());
+        System.out.println("File 2 (Base64): " + fileUploadDto.getFile2());
+
+        // Például a fájlokat kiírhatjuk a fájlrendszerbe vagy adatbázisba menthetjük
+        // Base64-dekódolásra is szükség lehet (nem mutatott itt)
+
+        return ResponseEntity.ok("Fájlok sikeresen fogadva!");
+    }
+}
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Base64;
+
+@RestController
+@RequestMapping("/api")
+public class FileUploadController {
+
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadFiles(@RequestBody FileUploadDto fileUploadDto) {
+        try {
+            // Fájl 1 dekódolása és mentése
+            byte[] decodedFile1 = Base64.getDecoder().decode(fileUploadDto.getFile1());
+            try (FileOutputStream fos = new FileOutputStream("output_file1.txt")) {
+                fos.write(decodedFile1);
+            }
+
+            // Fájl 2 dekódolása és mentése
+            byte[] decodedFile2 = Base64.getDecoder().decode(fileUploadDto.getFile2());
+            try (FileOutputStream fos = new FileOutputStream("output_file2.txt")) {
+                fos.write(decodedFile2);
+            }
+
+            System.out.println("Fájlok sikeresen mentve!");
+
+            return ResponseEntity.ok("Fájlok sikeresen fogadva és mentve!");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Hiba történt a fájlok mentésekor.");
+        }
+    }
+}
+
+
+
+
 
 
