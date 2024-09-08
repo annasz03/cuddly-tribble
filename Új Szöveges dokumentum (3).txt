@@ -537,6 +537,131 @@ public class FileUploadController {
     }
 }
 
+//h
+
+<!-- file-upload.component.html -->
+<form>
+  <label for="file1">Fájl 1:</label>
+  <input type="file" id="file1" (change)="onFileSelected($event, 'file1')" />
+
+  <label for="file2">Fájl 2:</label>
+  <input type="file" id="file2" (change)="onFileSelected($event, 'file2')" />
+
+  <!-- A submit gomb csak akkor jelenik meg, ha mindkét fájl fel van töltve -->
+  <button *ngIf="bothFilesUploaded()" (click)="onSubmit()">Fájlok elküldése</button>
+</form>
+
+// file-upload.component.ts
+import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { FileUpload } from './file-upload.interface';
+
+@Component({
+  selector: 'app-file-upload',
+  templateUrl: './file-upload.component.html'
+})
+export class FileUploadComponent {
+  fileData: FileUpload = { file1: '', file2: '' };
+
+  constructor(private http: HttpClient) {}
+
+  // Fájlfeltöltés kezelése
+  onFileSelected(event: Event, fileTag: string): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        if (fileTag === 'file1') {
+          this.fileData.file1 = base64String.split(',')[1]; // Base64 tartalom leválasztása
+        } else if (fileTag === 'file2') {
+          this.fileData.file2 = base64String.split(',')[1];
+        }
+      };
+      reader.readAsDataURL(file); // Base64 konvertálás
+    }
+  }
+
+  // Ellenőrzi, hogy mindkét fájl fel van-e töltve
+  bothFilesUploaded(): boolean {
+    return this.fileData.file1 !== '' && this.fileData.file2 !== '';
+  }
+
+  // Adatok elküldése a backendnek
+  onSubmit(): void {
+    this.http.post('http://localhost:8080/api/upload', this.fileData)
+      .subscribe(response => {
+        console.log('Fájlok sikeresen elküldve!', response);
+      }, error => {
+        console.error('Hiba a fájlok elküldésekor:', error);
+      });
+  }
+}
+
+import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+@Component({
+  selector: 'app-file-upload',
+  templateUrl: './file-upload.component.html'
+})
+export class FileUploadComponent {
+  file1: string = ''; // Az első fájl Base64 formátumban
+  file2: string = ''; // A második fájl Base64 formátumban
+
+  constructor(private http: HttpClient) {}
+
+  // Fájlfeltöltés kezelése
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+
+        // Ha még nincs fájl feltöltve, az első fájlként tároljuk
+        if (!this.file1) {
+          this.file1 = base64String.split(',')[1]; // Base64 tartalom leválasztása
+        } else if (!this.file2) {
+          // Ha már van egy fájl feltöltve, a második fájlként tároljuk
+          this.file2 = base64String.split(',')[1];
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // Ellenőrzi, hogy mindkét fájl fel van-e töltve
+  bothFilesUploaded(): boolean {
+    return this.file1 !== '' && this.file2 !== '';
+  }
+
+  // Adatok elküldése a backendnek
+  onSubmit(): void {
+    const fileData = {
+      file1: this.file1,
+      file2: this.file2
+    };
+
+    this.http.post('http://localhost:8080/api/upload', fileData)
+      .subscribe(response => {
+        console.log('Fájlok sikeresen elküldve!', response);
+      }, error => {
+        console.error('Hiba a fájlok elküldésekor:', error);
+      });
+  }
+}
+
+<!-- file-upload.component.html -->
+<form>
+  <label for="file">Válassz fájlokat:</label>
+  <input type="file" id="file" (change)="onFileSelected($event)" multiple />
+
+  <!-- A submit gomb csak akkor jelenik meg, ha mindkét fájl fel van töltve -->
+  <button *ngIf="bothFilesUploaded()" (click)="onSubmit()">Fájlok elküldése</button>
+</form>
 
 
 
