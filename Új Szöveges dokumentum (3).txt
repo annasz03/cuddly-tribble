@@ -737,6 +737,71 @@ public class StringFormatValidator {
     }
 }
 
+//error
+
+public class MessageService {
+    public String getMessage() {
+        return "Üdvözlünk az alkalmazásban!";
+    }
+}
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class MessageController {
+
+    private final MessageService messageService;
+
+    // Konstruktor-injektálás
+    public MessageController(MessageService messageService) {
+        this.messageService = messageService;
+    }
+
+    @GetMapping("/message")
+    public String getMessage() {
+        // Meghívja a MessageService osztály metódusát
+        return messageService.getMessage();
+    }
+}
+
+import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+@Component({
+  selector: 'app-message',
+  templateUrl: './message.component.html',
+})
+export class MessageComponent {
+  message: string = '';  // Eltároljuk a backendtől kapott üzenetet
+  errorMessage: string = '';  // Hibakezeléshez
+
+  constructor(private http: HttpClient) {}
+
+  getMessage() {
+    this.http.get('/api/message', { responseType: 'text' }).subscribe(
+      (data) => {
+        this.message = data;  // A visszakapott stringet eltároljuk
+      },
+      (error) => {
+        this.errorMessage = 'Hiba történt az üzenet lekérésekor';  // Hibakezelés
+      }
+    );
+  }
+}
+
+<div *ngIf="message">
+  <h3>Backend üzenet:</h3>
+  <p>{{ message }}</p>
+</div>
+
+<div *ngIf="errorMessage" class="alert alert-danger">
+  {{ errorMessage }}
+</div>
+
+<button (click)="getMessage()">Üzenet lekérése</button>
+
+
 
 
 
