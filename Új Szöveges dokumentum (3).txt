@@ -802,6 +802,141 @@ export class MessageComponent {
 <button (click)="getMessage()">Üzenet lekérése</button>
 
 
+//cs
+
+import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+@Component({
+  selector: 'app-message',
+  templateUrl: './message.component.html',
+})
+export class MessageComponent {
+  message: string = ''; // A backendtől kapott üzenet
+  errorMessage: string = ''; // Hibakezeléshez
+
+  constructor(private http: HttpClient) {}
+
+  getMessage() {
+    this.message = ''; // Mindig ürítsd ki a message-t és az error-t, mielőtt új kérést küldesz
+    this.errorMessage = '';
+
+    this.http.get('/api/message', { responseType: 'text' }).subscribe(
+      (data) => {
+        this.message = data; // Sikeres válasz esetén eltároljuk az üzenetet
+      },
+      (error) => {
+        this.errorMessage = 'Hiba történt az üzenet lekérésekor'; // Hibakezelés
+      }
+    );
+  }
+}
+
+loading: boolean = false;
+
+getMessage() {
+  this.message = '';
+  this.errorMessage = '';
+  this.loading = true;  // Kérés folyamatban
+
+  this.http.get('/api/message', { responseType: 'text' }).subscribe(
+    (data) => {
+      this.message = data;
+      this.loading = false;  // Kérés befejeződött
+    },
+    (error) => {
+      this.errorMessage = 'Hiba történt az üzenet lekérésekor';
+      this.loading = false;  // Kérés befejeződött
+    }
+  );
+}
+<div *ngIf="loading">Kérés folyamatban...</div>
+
+//value
+
+public class FeForras {
+    private String string1;
+    private String string2;
+
+    public FeForras(String string1, String string2) {
+        this.string1 = string1;
+        this.string2 = string2;
+    }
+
+    public String getString1() {
+        return string1;
+    }
+
+    public String getString2() {
+        return string2;
+    }
+
+    // Az egyenlőség ellenőrzéséhez szükség van a equals és hashCode felüldefiniálására
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FeForras feForras = (FeForras) o;
+        return string1.equals(feForras.string1) && string2.equals(feForras.string2);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(string1, string2);
+    }
+}
+
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class FeForrasManager {
+    // Statikus Map, ahol a kulcs egy int, és az érték egy FeForras objektum
+    private static Map<Integer, FeForras> feForrasMap = new HashMap<>();
+    private static int currentIndex = 0; // Ez a kulcs, amit automatikusan növelünk
+
+    // Ez a metódus kezeli a hozzáadást
+    public static int addFeForras(FeForras newFeForras) {
+        // Megnézzük, hogy az adott FeForras már létezik-e a map-ben
+        for (Map.Entry<Integer, FeForras> entry : feForrasMap.entrySet()) {
+            if (entry.getValue().equals(newFeForras)) {
+                // Ha létezik, visszatérünk annak a kulcsával (index)
+                return entry.getKey();
+            }
+        }
+
+        // Ha nem létezik, új kulccsal adjuk hozzá
+        feForrasMap.put(currentIndex, newFeForras);
+        return currentIndex++; // Visszaadjuk az új kulcsot, majd növeljük az indexet
+    }
+
+    // Opcionálisan egy getter a Map-hez, ha meg szeretnéd nézni a tartalmát
+    public static Map<Integer, FeForras> getFeForrasMap() {
+        return feForrasMap;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        FeForras fe1 = new FeForras("string1", "string2");
+        FeForras fe2 = new FeForras("string1", "string2");
+        FeForras fe3 = new FeForras("string3", "string4");
+
+        // Első hozzáadás
+        int index1 = FeForrasManager.addFeForras(fe1);
+        System.out.println("fe1 index: " + index1); // 0
+
+        // Második hozzáadás (ugyanaz, mint fe1, tehát nem adja hozzá újra)
+        int index2 = FeForrasManager.addFeForras(fe2);
+        System.out.println("fe2 index: " + index2); // 0 (ugyanaz az index, mint fe1)
+
+        // Harmadik hozzáadás (új érték)
+        int index3 = FeForrasManager.addFeForras(fe3);
+        System.out.println("fe3 index: " + index3); // 1
+    }
+}
+
+
 
 
 
