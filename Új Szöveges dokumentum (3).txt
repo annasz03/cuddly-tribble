@@ -937,7 +937,169 @@ public class Main {
 }
 
 
+//tabla
 
+data.service.ts
+
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DataService {
+  private fileContent: string = '';
+
+  // Beállítjuk a fájl tartalmát
+  setFileContent(content: string) {
+    this.fileContent = content;
+  }
+
+  // Visszakapjuk a fájl tartalmát
+  getFileContent() {
+    return this.fileContent;
+  }
+}
+
+
+import { Component } from '@angular/core';
+import { DataService } from './data.service';
+
+@Component({
+  selector: 'app-file-input',
+  templateUrl: './file-input.component.html'
+})
+export class FileInputComponent {
+  constructor(private dataService: DataService) {}
+
+  ngOnInit() {
+    // Például itt beállítjuk a fájl tartalmát
+    const fileData = '1;1;2000-01-01;0;0\n2;2;2001-02-02;1;1';
+    this.dataService.setFileContent(fileData);
+  }
+}
+
+
+megjelenites
+
+import { Component, OnInit } from '@angular/core';
+import { DataService } from './data.service';
+
+@Component({
+  selector: 'app-dynamic-table',
+  templateUrl: './dynamic-table.component.html'
+})
+export class DynamicTableComponent implements OnInit {
+  tableData: any[] = [];
+
+  constructor(private dataService: DataService) {}
+
+  ngOnInit() {
+    // Lekérjük a fájl tartalmát és feldolgozzuk
+    const fileContent = this.dataService.getFileContent();
+    this.tableData = this.parseFileContent(fileContent);
+  }
+
+  // A fájl tartalmának feldolgozása
+  parseFileContent(content: string): any[] {
+    const rows = content.split('\n'); // Sorokra bontjuk a fájlt
+    return rows.map(row => row.split(';')); // Minden sort oszlopokra bontunk
+  }
+}
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Column 1</th>
+      <th>Column 2</th>
+      <th>Column 3</th>
+      <th>Column 4</th>
+      <th>Column 5</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let row of tableData">
+      <td *ngFor="let cell of row">{{ cell }}</td>
+    </tr>
+  </tbody>
+</table>
+
+//modositas
+
+
+import { Component, OnInit } from '@angular/core';
+import { DataService } from './data.service';
+
+@Component({
+  selector: 'app-dynamic-table',
+  templateUrl: './dynamic-table.component.html'
+})
+export class DynamicTableComponent implements OnInit {
+  tableData: any[] = [];
+
+  constructor(private dataService: DataService) {}
+
+  ngOnInit() {
+    // Lekérjük a fájl tartalmát és feldolgozzuk
+    const fileContent = this.dataService.getFileContent();
+    this.tableData = this.parseFileContent(fileContent);
+  }
+
+  // A fájl tartalmának feldolgozása
+  parseFileContent(content: string): any[] {
+    const rows = content.split('\n'); // Sorokra bontjuk a fájlt
+    return rows.map(row => row.split(';')); // Minden sort oszlopokra bontunk
+  }
+
+  // Új üres sor hozzáadása
+  addRow() {
+    this.tableData.push(['', '', '', '', '']);
+  }
+
+  // Sor törlése
+  deleteRow(index: number) {
+    this.tableData.splice(index, 1); // A megadott indexű sort töröljük
+  }
+
+  // Adatok mentése (pl. később szolgáltatáson keresztül lehet küldeni)
+  saveData() {
+    const formattedData = this.tableData.map(row => row.join(';')).join('\n');
+    console.log('Mentett adatok:', formattedData);
+    // Ezt akár vissza is küldheted a DataService-be, ha menteni szeretnéd
+    this.dataService.setFileContent(formattedData);
+  }
+}
+
+<table>
+  <thead>
+    <tr>
+      <th>Column 1</th>
+      <th>Column 2</th>
+      <th>Column 3</th>
+      <th>Column 4</th>
+      <th>Column 5</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let row of tableData; let i = index">
+      <td><input [(ngModel)]="row[0]" /></td>
+      <td><input [(ngModel)]="row[1]" /></td>
+      <td><input [(ngModel)]="row[2]" /></td>
+      <td><input [(ngModel)]="row[3]" /></td>
+      <td><input [(ngModel)]="row[4]" /></td>
+      <td>
+        <button (click)="deleteRow(i)">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<button (click)="addRow()">Add Row</button>
+<button (click)="saveData()">Save</button>
+
+
+app.module.ts -> formsmodule import
 
 
 
