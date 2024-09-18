@@ -1302,4 +1302,210 @@ import { HttpClientModule } from '@angular/common/http';
 })
 export class AppModule { }
 
+//cs
+
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-pagination-table',
+  templateUrl: './pagination-table.component.html',
+  styleUrls: ['./pagination-table.component.css']
+})
+export class PaginationTableComponent implements OnInit {
+  rows: string[] = [
+    "1;1,1;2000-01-01;1,1",
+    "2;2,2;2001-01-01;2,2",
+    "3;3,3;2002-01-01;3,3"
+  ];
+
+  // Az adatok feldolgozása: a sorokat szétszedjük a ';' alapján
+  tableData: string[][] = [];
+
+  ngOnInit() {
+    this.tableData = this.rows.map(row => row.split(';'));
+  }
+}
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Oszlop 1</th>
+      <th>Oszlop 2</th>
+      <th>Oszlop 3</th>
+      <th>Oszlop 4</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let row of tableData">
+      <td *ngFor="let cell of row">{{ cell }}</td>
+    </tr>
+  </tbody>
+</table>
+
+
+//output
+
+package com.example.demo.model;
+
+import java.util.List;
+
+public class PersonSchedule {
+    private int personId;
+    private List<String> dates;
+
+    // Konstruktor
+    public PersonSchedule(int personId, List<String> dates) {
+        this.personId = personId;
+        this.dates = dates;
+    }
+
+    // Getterek és setterek
+    public int getPersonId() {
+        return personId;
+    }
+
+    public void setPersonId(int personId) {
+        this.personId = personId;
+    }
+
+    public List<String> getDates() {
+        return dates;
+    }
+
+    public void setDates(List<String> dates) {
+        this.dates = dates;
+    }
+}
+
+
+package com.example.demo.service;
+
+import com.example.demo.model.PersonSchedule;
+import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Service
+public class ScheduleService {
+
+    // Adatok generálása (itt lehet adatbázis kapcsolatot is létrehozni)
+    public List<PersonSchedule> getPersonSchedules() {
+        return Arrays.asList(
+            new PersonSchedule(1, Arrays.asList("2024-01-01", "2024-01-02")),
+            new PersonSchedule(2, Arrays.asList("2024-01-03", "2024-01-04")),
+            new PersonSchedule(3, Arrays.asList("2024-01-02", "2024-01-05"))
+        );
+    }
+}
+package com.example.demo.controller;
+
+import com.example.demo.model.PersonSchedule;
+import com.example.demo.service.ScheduleService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+public class ScheduleController {
+
+    private final ScheduleService scheduleService;
+
+    // Konstruktor
+    public ScheduleController(ScheduleService scheduleService) {
+        this.scheduleService = scheduleService;
+    }
+
+    // Endpoint az adatok lekéréséhez
+    @GetMapping("/api/schedules")
+    public List<PersonSchedule> getSchedules() {
+        return scheduleService.getPersonSchedules();
+    }
+}
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+export interface PersonSchedule {
+  personId: number;
+  dates: string[];
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ScheduleService {
+
+  private apiUrl = 'http://localhost:8080/api/schedules';
+
+  constructor(private http: HttpClient) {}
+
+  getPersonSchedules(): Observable<PersonSchedule[]> {
+    return this.http.get<PersonSchedule[]>(this.apiUrl);
+  }
+}
+
+import { Component, OnInit } from '@angular/core';
+import { ScheduleService, PersonSchedule } from './schedule.service';
+
+@Component({
+  selector: 'app-calendar-table',
+  templateUrl: './calendar-table.component.html',
+  styleUrls: ['./calendar-table.component.css']
+})
+export class CalendarTableComponent implements OnInit {
+  personSchedules: PersonSchedule[] = [];
+  days: string[] = [];
+  startDate: string = '2024-01-01';
+  numberOfDays: number = 7; // pl. egy hét
+
+  constructor(private scheduleService: ScheduleService) {}
+
+  ngOnInit() {
+    this.generateDays(this.startDate, this.numberOfDays);
+    this.loadSchedules();
+  }
+
+  generateDays(startDate: string, numberOfDays: number) {
+    const start = new Date(startDate);
+    for (let i = 0; i < numberOfDays; i++) {
+      const day = new Date(start);
+      day.setDate(start.getDate() + i);
+      this.days.push(day.toISOString().split('T')[0]);
+    }
+  }
+
+  loadSchedules() {
+    this.scheduleService.getPersonSchedules().subscribe(data => {
+      this.personSchedules = data;
+    });
+  }
+
+  isDaySelected(personId: number, day: string): boolean {
+    const person = this.personSchedules.find(d => d.personId === personId);
+    return person ? person.dates.includes(day) : false;
+  }
+}
+
+<table>
+  <thead>
+    <tr>
+      <th>Index</th>
+      <th *ngFor="let day of days">{{ day }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let person of data">
+      <td>{{ person[0] }}</td> <!-- Az ember indexe -->
+      <td *ngFor="let day of days" [ngStyle]="{'background-color': isDaySelected(person[0], day) ? 'lightgreen' : 'white'}">
+        <!-- Kiszínezett cella, ha a nap szerepel -->
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
 
