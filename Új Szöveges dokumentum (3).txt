@@ -1508,4 +1508,276 @@ export class CalendarTableComponent implements OnInit {
 </table>
 
 
+//k
+
+public class RowData {
+    private List<Integer> values;
+
+    public RowData(List<Integer> values) {
+        this.values = values;
+    }
+
+    public List<Integer> getValues() {
+        return values;
+    }
+
+    public void setValues(List<Integer> values) {
+        this.values = values;
+    }
+}
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class MyObject {
+    private String data; // String formátuma: "1;1;1;1\n2;2;2;2"
+
+    public MyObject(String data) {
+        this.data = data;
+    }
+
+    // Adatok feldarabolása \n és ; mentén
+    public List<RowData> getParsedData() {
+        List<RowData> result = new ArrayList<>();
+        String[] rows = data.split("\n");
+
+        for (String row : rows) {
+            String[] parts = row.split(";");
+            List<Integer> rowValues = new ArrayList<>();
+            for (String part : parts) {
+                rowValues.add(Integer.parseInt(part));
+            }
+            result.add(new RowData(rowValues)); // Minden sor RowData objektum lesz
+        }
+
+        return result;
+    }
+}
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+public class MyController {
+
+    // Példa API endpoint a feldolgozott adatok visszaküldésére
+    @GetMapping("/api/data")
+    public Map<Integer, List<RowData>> getData() {
+        Map<Integer, MyObject> map = new HashMap<>();
+        // Feltöltés példa adattal
+        map.put(1, new MyObject("1;1;1;1\n2;2;2;2\n3;3;3;3"));
+
+        Map<Integer, List<RowData>> result = new HashMap<>();
+        for (Map.Entry<Integer, MyObject> entry : map.entrySet()) {
+            result.put(entry.getKey(), entry.getValue().getParsedData());
+        }
+
+        return result; // JSON formátumban visszaküldi a 2D objektum struktúrát
+    }
+}
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DataService {
+
+  constructor(private http: HttpClient) { }
+
+  // API-ról adatok lekérése
+  getData(): Observable<{[key: number]: RowData[]}> {
+    return this.http.get<{[key: number]: RowData[]}>('/api/data');
+  }
+}
+
+// RowData interfész, ami a kapott objektumot reprezentálja
+export interface RowData {
+  values: number[];
+}
+
+import { Component, OnInit } from '@angular/core';
+import { DataService, RowData } from './data.service';
+
+@Component({
+  selector: 'app-data',
+  template: `
+    <div *ngFor="let key of keys">
+      <h3>Kulcs: {{key}}</h3>
+      <div *ngFor="let row of data[key]">
+        <p>Értékek: {{row.values.join(', ')}}</p>
+      </div>
+    </div>
+  `
+})
+export class DataComponent implements OnInit {
+  data: {[key: number]: RowData[]} = {};
+  keys: number[] = [];
+
+  constructor(private dataService: DataService) { }
+
+  ngOnInit(): void {
+    this.dataService.getData().subscribe(response => {
+      this.data = response;
+      this.keys = Object.keys(this.data).map(key => +key); // Kulcsok listázása
+    });
+  }
+}
+
+
+//id sor
+
+public class MyObject {
+    private int id;
+    private String data1; // Az első string
+    private String data2; // A második string
+
+    public MyObject(int id, String data1, String data2) {
+        this.id = id;
+        this.data1 = data1;
+        this.data2 = data2;
+    }
+
+    // Getterek és setterek
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getData1() {
+        return data1;
+    }
+
+    public void setData1(String data1) {
+        this.data1 = data1;
+    }
+
+    public String getData2() {
+        return data2;
+    }
+
+    public void setData2(String data2) {
+        this.data2 = data2;
+    }
+}
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class MyObjectStorage {
+    private Map<Integer, MyObject> objectMap = new HashMap<>();
+
+    // Példa adat feltöltése a map-be
+    public MyObjectStorage() {
+        objectMap.put(1, new MyObject(1, "1;1;1;1", "2;2;2;2"));
+        objectMap.put(2, new MyObject(2, "3;3;3;3", "4;4;4;4"));
+        objectMap.put(3, new MyObject(3, "5;5;5;5", "6;6;6;6"));
+    }
+
+    // Objektum lekérése az id alapján
+    public MyObject getObjectById(int id) {
+        return objectMap.get(id);
+    }
+    
+    // Az összes objektum visszaadása
+    public Map<Integer, MyObject> getAllObjects() {
+        return objectMap;
+    }
+}
+
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
+
+@RestController
+public class MyController {
+
+    private MyObjectStorage storage = new MyObjectStorage();
+
+    // Egyedi objektum visszaadása ID alapján
+    @GetMapping("/api/object/{id}")
+    public MyObject getObjectById(@PathVariable int id) {
+        return storage.getObjectById(id);
+    }
+
+    // Összes objektum visszaadása
+    @GetMapping("/api/objects")
+    public Map<Integer, MyObject> getAllObjects() {
+        return storage.getAllObjects();
+    }
+}
+
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+// MyObject interfész
+export interface MyObject {
+  id: number;
+  data1: string;
+  data2: string;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DataService {
+
+  constructor(private http: HttpClient) { }
+
+  // Egy objektum lekérése az ID alapján
+  getObjectById(id: number): Observable<MyObject> {
+    return this.http.get<MyObject>(`/api/object/${id}`);
+  }
+
+  // Az összes objektum lekérése
+  getAllObjects(): Observable<{ [key: number]: MyObject }> {
+    return this.http.get<{ [key: number]: MyObject }>('/api/objects');
+  }
+}
+
+
+import { Component, OnInit } from '@angular/core';
+import { DataService, MyObject } from './data.service';
+
+@Component({
+  selector: 'app-data',
+  template: `
+    <div *ngFor="let obj of objects">
+      <h3>ID: {{obj.id}}</h3>
+      <p>Data 1: {{obj.data1}}</p>
+      <p>Data 2: {{obj.data2}}</p>
+    </div>
+  `
+})
+export class DataComponent implements OnInit {
+  objects: MyObject[] = [];
+
+  constructor(private dataService: DataService) { }
+
+  ngOnInit(): void {
+    // Az összes objektum lekérése és megjelenítése
+    this.dataService.getAllObjects().subscribe(response => {
+      this.objects = Object.values(response);
+    });
+  }
+}
+
+
+
+
 
