@@ -1829,4 +1829,59 @@ export class FileUploadComponent {
   }
 }
 
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root' // Ez biztosítja, hogy a DataService az egész alkalmazásban elérhető legyen
+})
+export class DataService {
+  private baseUrl = 'https://api.example.com';
+
+  constructor(private http: HttpClient) { }
+
+  // Például egy GET kérés az összes adat lekérdezéséhez
+  getAllData(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/data`);
+  }
+
+  // Például egy POST kérés egy új adat létrehozásához
+  createData(data: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/data`, data);
+  }
+
+  // Egyéb API hívások...
+}
+
+
+import { Component, OnInit } from '@angular/core';
+import { DataService } from './data.service'; // Importálod a DataService-t
+
+@Component({
+  selector: 'app-data',
+  templateUrl: './data.component.html'
+})
+export class DataComponent implements OnInit {
+
+  data: any[] = [];  // A kapott adatok tárolására
+
+  // Injektálod a DataService-t a konstruktorban
+  constructor(private dataService: DataService) {}
+
+  ngOnInit(): void {
+    // Amikor a komponens inicializálódik, meghívod a DataService metódust
+    this.dataService.getAllData().subscribe({
+      next: (response) => {
+        this.data = response;
+        console.log('Adatok:', this.data);
+      },
+      error: (err) => {
+        console.error('Hiba történt:', err);
+      }
+    });
+  }
+
+  // Egyéb logikák és funkciók a komponensen belül
+}
 
