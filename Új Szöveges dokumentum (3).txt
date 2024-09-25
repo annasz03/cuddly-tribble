@@ -1781,3 +1781,52 @@ export class DataComponent implements OnInit {
 
 
 
+<form [formGroup]="formGroup">
+  <input type="file" (change)="onFileSelected($event)" #fileInput>
+  <button (click)="uploadFile()">Feltöltés</button>
+  <button (click)="resetFileInput(fileInput)">Reset</button>
+</form>
+
+
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+
+@Component({
+  selector: 'app-file-upload',
+  templateUrl: './file-upload.component.html'
+})
+export class FileUploadComponent {
+  formGroup: FormGroup;
+  selectedFile: File | null = null;
+
+  constructor(private fb: FormBuilder) {
+    this.formGroup = this.fb.group({
+      // A formád mezőit ide tudod hozzáadni
+    });
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      console.log('Kiválasztott fájl:', file.name);
+    }
+  }
+
+  uploadFile(): void {
+    if (this.selectedFile) {
+      // Fájl feltöltési logika itt
+      console.log('Fájl feltöltése:', this.selectedFile.name);
+
+      // Feltöltés után töröld a fájl bemenetet
+      this.resetFileInput();
+    }
+  }
+
+  resetFileInput(fileInput: any): void {
+    fileInput.value = ''; // Ezzel törlöd a fájlmező értékét
+    this.selectedFile = null; // Ezzel nullázod a kiválasztott fájl változót is
+  }
+}
+
+
