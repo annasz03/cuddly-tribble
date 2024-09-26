@@ -1885,3 +1885,155 @@ export class DataComponent implements OnInit {
   // Egyéb logikák és funkciók a komponensen belül
 }
 
+
+//rxjs
+
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DataService {
+  private apiUrl = 'https://api.example.com/data';
+
+  constructor(private http: HttpClient) {}
+
+  getData(): Observable<any> {
+    return this.http.get<any>(this.apiUrl).pipe(
+      catchError(this.handleError)  // Hibakezelés
+    );
+  }
+
+  private handleError(error: HttpErrorResponse) {
+    let errorMessage = '';
+    if (error.error instanceof ErrorEvent) {
+      // Client-side vagy hálózati hiba
+      errorMessage = `Hiba történt: ${error.error.message}`;
+    } else {
+      // Backend oldali hiba
+      errorMessage = `Backend hiba: ${error.status} - ${error.message}`;
+    }
+    // Itt lehet logolni vagy egyéb teendőket végezni
+    console.error(errorMessage);
+    return throwError(() => new Error(errorMessage)); // Hibát dob vissza
+  }
+}
+
+
+import { Component, OnInit } from '@angular/core';
+import { DataService } from './data.service';
+
+@Component({
+  selector: 'app-data',
+  template: `
+    <div *ngIf="errorMessage">{{ errorMessage }}</div>
+    <div *ngIf="data">{{ data | json }}</div>
+  `
+})
+export class DataComponent implements OnInit {
+  data: any;
+  errorMessage: string | null = null;
+
+  constructor(private dataService: DataService) {}
+
+  ngOnInit() {
+    this.dataService.getData().subscribe({
+      next: (response) => {
+        this.data = response;
+      },
+      error: (error) => {
+        this.errorMessage = error.message;
+      }
+    });
+  }
+}
+
+
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DataService {
+  private apiUrl = 'https://api.example.com/data';
+
+  constructor(private http: HttpClient) {}
+
+  getData(): Observable<any> {
+    return this.http.get<any>(this.apiUrl).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  private handleError(error: HttpErrorResponse) {
+    let errorMessage = '';
+
+    if (error.error instanceof ErrorEvent) {
+      // Client-side vagy hálózati hiba
+      errorMessage = `Hálózati hiba: ${error.error.message}`;
+    } else {
+      // Backend válasz hibái (status code alapján)
+      switch (error.status) {
+        case 400:
+          errorMessage = 'Helytelen kérés (400). Kérjük, ellenőrizze a bevitt adatokat.';
+          break;
+        case 401:
+          errorMessage = 'Nem hitelesített (401). Kérjük, jelentkezzen be.';
+          break;
+        case 403:
+          errorMessage = 'Hozzáférés megtagadva (403). Nincs jogosultsága ehhez a művelethez.';
+          break;
+        case 404:
+          errorMessage = 'Nem található (404). Az erőforrás nem létezik.';
+          break;
+        case 500:
+          errorMessage = 'Szerver hiba (500). Kérjük, próbálja újra később.';
+          break;
+        default:
+          errorMessage = `Váratlan hiba történt: ${error.status} - ${error.message}`;
+      }
+    }
+
+    console.error(`HTTP Error: ${errorMessage}`);
+    return throwError(() => new Error(errorMessage));
+  }
+}
+
+
+import { Component, OnInit } from '@angular/core';
+import { DataService } from './data.service';
+
+@Component({
+  selector: 'app-data',
+  template: `
+    <div *ngIf="errorMessage">{{ errorMessage }}</div>
+    <div *ngIf="data">{{ data | json }}</div>
+  `
+})
+export class DataComponent implements OnInit {
+  data: any;
+  errorMessage: string | null = null;
+
+  constructor(private dataService: DataService) {}
+
+  ngOnInit() {
+    this.dataService.getData().subscribe({
+      next: (response) => {
+        this.data = response;
+      },
+      error: (error) => {
+        this.errorMessage = error.message;
+      }
+    });
+  }
+}
+
+
+
+
