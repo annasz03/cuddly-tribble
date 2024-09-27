@@ -2035,5 +2035,171 @@ export class DataComponent implements OnInit {
 }
 
 
+Ahhoz, hogy a fájlfeltöltés, a fájl kiválasztása (select), valamint a fájl megjelenítése (táblázat) együtt működjenek külön komponensekben, a legjobb megoldás az, hogy az adatokat megosztod a különböző komponensek között. Ehhez az adatokat valamilyen közös helyen kell kezelni, például egy szolgáltatáson keresztül, ami lehetővé teszi, hogy a fájlfeltöltő komponens, a select (legördülő lista), és a táblázat komponensei is hozzáférjenek ugyanahhoz az adathoz.
 
+Szerkezeti javaslat:
+FileUploadComponent (Fájl feltöltésért felelős)
+FileSelectComponent (Legördülő lista kiválasztásért felelős)
+FileTableComponent (Táblázat megjelenítésért felelős)
+FileService (Központi szolgáltatás az adatok kezelésére)
+A FileSelectComponent-et úgy célszerű elhelyezni, hogy mind a feltöltési komponenssel, mind a táblázattal kapcsolatban legyen, azaz ugyanazon a szinten legyen, vagy egy szülő komponensben.
+
+Lépések:
+1. Szolgáltatás létrehozása az adatok kezelésére:
+Az adatmegosztás érdekében hozz létre egy szolgáltatást, amely a fájlok indexeit és tartalmát kezeli.
+
+bash
+Kód másolása
+ng generate service file
+A file.service.ts így nézhet ki:
+
+typescript
+Kód másolása
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class FileService {
+  // A feltöltött fájlok indexének és tartalmának tárolása
+  private files = new BehaviorSubject<any[]>([]);
+  files$ = this.files.asObservable();
+
+  // Aktuálisan kiválasztott fájl indexe
+  private selectedFileIndex = new BehaviorSubject<number | null>(null);
+  selectedFileIndex$ = this.selectedFileIndex.asObservable();
+
+  // Fájlfeltöltés kezelése
+  uploadFile(file: any) {
+    const currentFiles = this.files.getValue();
+    const newIndex = currentFiles.length;
+    this.files.next([...currentFiles, { index: newIndex, file: file }]);
+    return newIndex;  // Visszaadja az új fájl indexét
+  }
+
+  // Fájl kiválasztásának kezelése
+  selectFile(index: number) {
+    this.selectedFileIndex.next(index);
+  }
+
+  // Visszaadja a kiválasztott fájlt
+  getSelectedFile() {
+    const currentFiles = this.files.getValue();
+    const selectedIndex = this.selectedFileIndex.getValue();
+    return selectedIndex !== null ? currentFiles[selectedIndex] : null;
+  }
+}
+2. FileUploadComponent - Fájl feltöltés komponens:
+Ez a komponens felelős lesz a fájl feltöltéséért és az index visszatéréséért.
+
+typescript
+Kód másolása
+import { Component } from '@angular/core';
+import { FileService } from '../file.service';
+
+@Component({
+  selector: 'app-file-upload',
+  template: `
+    <input type="file" (change)="onFileSelected($event)" />
+  `
+})
+export class FileUploadComponent {
+
+  constructor(private fileService: FileService) { }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const fileIndex = this.fileService.uploadFile(file);
+      console.log('Fájl feltöltve, index:', fileIndex);
+    }
+  }
+}
+3. FileSelectComponent - Legördülő lista komponens:
+Ez a komponens a feltöltött fájlokat listázza, és lehetővé teszi, hogy kiválaszd a megtekinteni kívánt fájlt.
+
+typescript
+Kód másolása
+import { Component, OnInit } from '@angular/core';
+import { FileService } from '../file.service';
+
+@Component({
+  selector: 'app-file-select',
+  template: `
+    <mat-form-field>
+      <mat-label>Válassz egy fájlt</mat-label>
+      <mat-select (selectionChange)="onFileSelected($event.value)">
+        <mat-option *ngFor="let file of files; let i = index" [value]="i">
+          Fájl {{ i + 1 }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  `
+})
+export class FileSelectComponent implements OnInit {
+  files: any[] = [];
+
+  constructor(private fileService: FileService) { }
+
+  ngOnInit() {
+    this.fileService.files$.subscribe(files => {
+      this.files = files;
+    });
+  }
+
+  onFileSelected(index: number) {
+    this.fileService.selectFile(index);
+  }
+}
+4. FileTableComponent - Táblázat komponens:
+Ez a komponens megjeleníti a kiválasztott fájl tartalmát táblázat formájában.
+
+typescript
+Kód másolása
+import { Component, OnInit } from '@angular/core';
+import { FileService } from '../file.service';
+
+@Component({
+  selector: 'app-file-table',
+  template: `
+    <table *ngIf="selectedFile">
+      <tr><th>Index</th><td>{{ selectedFile.index }}</td></tr>
+      <tr><th>Fájlnév</th><td>{{ selectedFile.file.name }}</td></tr>
+      <tr><th>Fájlméret</th><td>{{ selectedFile.file.size }} byte</td></tr>
+    </table>
+    <p *ngIf="!selectedFile">Nincs kiválasztva fájl.</p>
+  `
+})
+export class FileTableComponent implements OnInit {
+  selectedFile: any;
+
+  constructor(private fileService: FileService) { }
+
+  ngOnInit() {
+    this.fileService.selectedFileIndex$.subscribe(() => {
+      this.selectedFile = this.fileService.getSelectedFile();
+    });
+  }
+}
+5. App komponens (vagy egy szülő komponens) az összeillesztéshez:
+Most a három komponenst együtt jelenítjük meg az appban.
+
+typescript
+Kód másolása
+@Component({
+  selector: 'app-root',
+  template: `
+    <app-file-upload></app-file-upload>
+    <app-file-select></app-file-select>
+    <app-file-table></app-file-table>
+  `,
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {}
+Működés:
+A FileUploadComponent felelős a fájl feltöltéséért, és a feltöltött fájl indexét tárolja a FileService-ben.
+A FileSelectComponent legördülő listában megjeleníti a feltöltött fájlokat, és lehetővé teszi a kiválasztást.
+A FileTableComponent a kiválasztott fájl adatait jeleníti meg egy táblázatban.
+Ez a struktúra biztosítja, hogy a select és a táblázat megfelelően működjön egymással és a fájlfeltöltéssel, mindegyik komponens külön áll, de a közös FileService-en keresztül osztják meg az adatokat.
 
