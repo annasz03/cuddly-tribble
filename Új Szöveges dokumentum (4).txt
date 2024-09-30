@@ -139,5 +139,105 @@ export class MainComponent {
 
 
 
+-----
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DataService {
+
+  constructor(private http: HttpClient) {}
+
+  // Fájlok feltöltése
+  uploadFiles(formData: FormData): Observable<any> {
+    return this.http.post<any>('http://localhost:8080/upload', formData);
+  }
+
+  // Adatok lekérése ID alapján
+  getFileDataById(id: string): Observable<any> {
+    return this.http.get<any>(`http://localhost:8080/files/${id}`);
+  }
+
+  // Oszlopnevek lekérése
+  getTableHeaders(): Observable<string[]> {
+    return this.http.get<string[]>('http://localhost:8080/table-headers'); // Példaként az URL
+  }
+}
+
+
+import { Component, Input } from '@angular/core';
+import { TableRow } from '../models/table-row.model';
+
+@Component({
+  selector: 'app-data-table',
+  templateUrl: './data-table.component.html'
+})
+export class DataTableComponent {
+  @Input() tableData: TableRow[] = []; // A táblázat adatai
+  @Input() tableHeaders: string[] = []; // Az oszlopnevek
+}
+
+
+<table *ngIf="tableData.length > 0">
+  <thead>
+    <tr>
+      <th *ngFor="let header of tableHeaders">{{ header }}</th> <!-- Dinamikus oszlopnevek -->
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let row of tableData">
+      <td>{{ row.column1 }}</td>
+      <td>{{ row.column2 }}</td>
+      <td>{{ row.column3 }}</td>
+      <td>{{ row.column4 }}</td>
+      <td>{{ row.column5 }}</td>
+    </tr>
+  </tbody>
+</table>
+
+
+import { Component, OnInit } from '@angular/core';
+import { DataService } from '../services/data.service';
+import { TableRow } from '../models/table-row.model';
+
+@Component({
+  selector: 'app-main',
+  templateUrl: './main.component.html'
+})
+export class MainComponent implements OnInit {
+  ids: string[] = [];
+  tableData: TableRow[] = [];
+  tableHeaders: string[] = []; // Oszlopnevek tárolása
+
+  constructor(private dataService: DataService) {}
+
+  ngOnInit() {
+    // Oszlopnevek lekérése
+    this.dataService.getTableHeaders().subscribe(headers => {
+      this.tableHeaders = headers;
+    });
+  }
+
+  onFilesUploaded(formData: FormData) {
+    this.dataService.uploadFiles(formData).subscribe(response => {
+      this.ids = response.ids; // ID-k visszaadása
+    });
+  }
+
+  onIdSelected(id: string) {
+    this.dataService.getFileDataById(id).subscribe(response => {
+      this.tableData = response.data; // Adatok beállítása
+    });
+  }
+}
+
+
+<app-file-upload (filesUploaded)="onFilesUploaded($event)"></app-file-upload>
+<app-id-select [ids]="ids" (idSelected)="onIdSelected($event)"></app-id-select>
+<app-data-table [tableData]="tableData" [tableHeaders]="tableHeaders"></app-data-table> <!-- Oszlopnevek átadása -->
 
 
