@@ -1,4 +1,39 @@
-@import "node_modules/bootstrap/dist/css/bootstrap.min.css";
-@import "node_modules/font-awesome/css/font-awesome.min.css";
+ <mat-form-field>
+  <mat-label>Válassz egy dátumot</mat-label>
+  <input matInput [matDatepicker]="picker" [(ngModel)]="selectedDate">
+  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+  <mat-datepicker #picker></mat-datepicker>
+</mat-form-field>
+
+<p>Kiválasztott dátum: {{ selectedDate | date: 'yyyy-MM' }}</p>
+
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-date-picker',
+  templateUrl: './date-picker.component.html',
+  styleUrls: ['./date-picker.component.css']
+})
+export class DatePickerComponent {
+  selectedDate: Date | null = null;
+}
+
+let selectedYear = this.selectedDate.getFullYear();
+let selectedMonth = this.selectedDate.getMonth() + 1; // Hónap indexelt (0-11), ezért +1
 
 
+
+const indexekNevei = {
+  1: 'macska',
+  4: 'ló',
+  5: 'kutya',
+  7: 'papagáj'
+};
+
+localStorage.setItem('indexekNevei', JSON.stringify(indexekNevei));
+
+const storedIndexek = JSON.parse(localStorage.getItem('indexek') || '[]');  // Kiolvassuk az indexeket
+const storedIndexekNevei = JSON.parse(localStorage.getItem('indexekNevei') || '{}');  // Kiolvassuk a neveket
+
+console.log(storedIndexek);  // [1, 4, 5, 7]
+console.log(storedIndexekNevei[5]);  // 'kutya'
