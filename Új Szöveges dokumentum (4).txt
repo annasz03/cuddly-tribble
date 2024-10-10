@@ -37,3 +37,54 @@ const storedIndexekNevei = JSON.parse(localStorage.getItem('indexekNevei') || '{
 
 console.log(storedIndexek);  // [1, 4, 5, 7]
 console.log(storedIndexekNevei[5]);  // 'kutya'
+
+
+<mat-form-field appearance="fill">
+  <mat-label>Válassz évet és hónapot</mat-label>
+  <input matInput [matDatepicker]="picker" (dateChange)="onDateChange($event)">
+  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+  <mat-datepicker #picker startView="multi-year" (monthSelected)="chosenMonthHandler($event, picker)" panelClass="month-picker" [startAt]="startDate" [yearSelected]="chosenYearHandler($event, picker)"></mat-datepicker>
+</mat-form-field>
+
+
+import { Component } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { DateAdapter } from '@angular/material/core';
+
+@Component({
+  selector: 'app-month-year-picker',
+  templateUrl: './month-year-picker.component.html',
+  styleUrls: ['./month-year-picker.component.css']
+})
+export class MonthYearPickerComponent {
+
+  year: number | undefined;
+  month: number | undefined;
+  startDate = new Date();
+
+  constructor(private dateAdapter: DateAdapter<any>) {
+    // Dátum formátum beállítása
+    this.dateAdapter.setLocale('hu');  // magyar formátum
+  }
+
+  chosenYearHandler(normalizedYear: Date, datepicker: any) {
+    this.year = normalizedYear.getFullYear();
+  }
+
+  chosenMonthHandler(normalizedMonth: Date, datepicker: any) {
+    this.month = normalizedMonth.getMonth() + 1; // A getMonth() 0-indexelt
+    datepicker.close(); // Bezárja a datepicker-t, miután kiválasztottuk a hónapot
+  }
+
+  onDateChange(event: any) {
+    const selectedDate = event.value;
+    this.year = selectedDate.getFullYear();
+    this.month = selectedDate.getMonth() + 1; // 0-indexelt
+    console.log('Kiválasztott év:', this.year);
+    console.log('Kiválasztott hónap:', this.month);
+  }
+}
+
+
+
+
