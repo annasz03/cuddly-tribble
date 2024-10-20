@@ -1,89 +1,245 @@
- <mat-form-field>
-  <mat-label>Válassz egy dátumot</mat-label>
-  <input matInput [matDatepicker]="picker" [(ngModel)]="selectedDate">
-  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-  <mat-datepicker #picker></mat-datepicker>
-</mat-form-field>
-
-<p>Kiválasztott dátum: {{ selectedDate | date: 'yyyy-MM' }}</p>
-
-import { Component } from '@angular/core';
+//szulo-gyerek
+import { Component, Input } from '@angular/core';
 
 @Component({
-  selector: 'app-date-picker',
-  templateUrl: './date-picker.component.html',
-  styleUrls: ['./date-picker.component.css']
+  selector: 'app-child',
+  template: `<p>A szülőtől kapott adat: {{ data }}</p>`,
 })
-export class DatePickerComponent {
-  selectedDate: Date | null = null;
+export class ChildComponent {
+  @Input() data!: string; 
 }
 
-let selectedYear = this.selectedDate.getFullYear();
-let selectedMonth = this.selectedDate.getMonth() + 1; // Hónap indexelt (0-11), ezért +1
 
+<app-child [data]="parentData"></app-child>
 
-
-const indexekNevei = {
-  1: 'macska',
-  4: 'ló',
-  5: 'kutya',
-  7: 'papagáj'
-};
-
-localStorage.setItem('indexekNevei', JSON.stringify(indexekNevei));
-
-const storedIndexek = JSON.parse(localStorage.getItem('indexek') || '[]');  // Kiolvassuk az indexeket
-const storedIndexekNevei = JSON.parse(localStorage.getItem('indexekNevei') || '{}');  // Kiolvassuk a neveket
-
-console.log(storedIndexek);  // [1, 4, 5, 7]
-console.log(storedIndexekNevei[5]);  // 'kutya'
-
-
-<mat-form-field appearance="fill">
-  <mat-label>Válassz évet és hónapot</mat-label>
-  <input matInput [matDatepicker]="picker" (dateChange)="onDateChange($event)">
-  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-  <mat-datepicker #picker startView="multi-year" (monthSelected)="chosenMonthHandler($event, picker)" panelClass="month-picker" [startAt]="startDate" [yearSelected]="chosenYearHandler($event, picker)"></mat-datepicker>
-</mat-form-field>
-
-
-import { Component } from '@angular/core';
-import { FormControl } from '@angular/forms';
-import { DateAdapter } from '@angular/material/core';
+//gyerek-szulo
+import { Component, Output, EventEmitter } from '@angular/core';
 
 @Component({
-  selector: 'app-month-year-picker',
-  templateUrl: './month-year-picker.component.html',
-  styleUrls: ['./month-year-picker.component.css']
+  selector: 'app-child',
+  template: `<button (click)="sendData()">Küldj adatot</button>`,
 })
-export class MonthYearPickerComponent {
+export class ChildComponent {
+  @Output() dataEmitter = new EventEmitter<string>();
 
-  year: number | undefined;
-  month: number | undefined;
-  startDate = new Date();
-
-  constructor(private dateAdapter: DateAdapter<any>) {
-    // Dátum formátum beállítása
-    this.dateAdapter.setLocale('hu');  // magyar formátum
-  }
-
-  chosenYearHandler(normalizedYear: Date, datepicker: any) {
-    this.year = normalizedYear.getFullYear();
-  }
-
-  chosenMonthHandler(normalizedMonth: Date, datepicker: any) {
-    this.month = normalizedMonth.getMonth() + 1; // A getMonth() 0-indexelt
-    datepicker.close(); // Bezárja a datepicker-t, miután kiválasztottuk a hónapot
-  }
-
-  onDateChange(event: any) {
-    const selectedDate = event.value;
-    this.year = selectedDate.getFullYear();
-    this.month = selectedDate.getMonth() + 1; // 0-indexelt
-    console.log('Kiválasztott év:', this.year);
-    console.log('Kiválasztott hónap:', this.month);
+  sendData() {
+    this.dataEmitter.emit('Adat a gyerek komponensből');
   }
 }
+<app-child (dataEmitter)="receiveData($event)"></app-child>
+
+
+//days
+
+import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { DayPilot } from 'daypilot-pro-angular'; // Importáljuk a szükséges DayPilot elemeket
+
+@Component({
+  selector: 'app-my-scheduler',
+  templateUrl: './my-scheduler.component.html'
+})
+export class MySchedulerComponent implements AfterViewInit {
+
+  @ViewChild('scheduler', { static: false }) scheduler: DayPilot.Angular.SchedulerComponent | undefined;
+
+  events: any[] = [];  // Események helye
+
+  constructor() { }
+
+  ngAfterViewInit() {
+    // Ellenőrizzük, hogy a scheduler inicializálódott-e
+    if (this.scheduler) {
+      this.loadDataFromBackend();
+    } else {
+      console.error('Scheduler is undefined');
+    }
+  }
+
+  loadDataFromBackend() {
+    // Itt történik a backend hívás
+    // Példa adat betöltése
+    const startDate = '2023-10-20'; // backend-ről jövő adat (pl. kezdő dátum)
+    const days = 7;                 // backend-ről jövő adat (pl. napok száma)
+
+    if (this.scheduler) {
+      this.scheduler.startDate = DayPilot.Date.parse(startDate);
+      this.scheduler.days = days;
+      this.scheduler.update();
+    }
+  }
+}
+
+//v
+import { HttpClient } from '@angular/common/http';
+import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { DayPilot } from 'daypilot-pro-angular';
+
+@Component({
+  selector: 'app-my-scheduler',
+  templateUrl: './my-scheduler.component.html'
+})
+export class MySchedulerComponent implements AfterViewInit {
+
+  @ViewChild('scheduler', { static: false }) scheduler: DayPilot.Angular.SchedulerComponent | undefined;
+
+  constructor(private http: HttpClient) { }
+
+  ngAfterViewInit() {
+    // Ellenőrizzük, hogy a scheduler inicializálódott-e
+    if (this.scheduler) {
+      this.loadDataFromBackend();
+    } else {
+      console.error('Scheduler is undefined');
+    }
+  }
+
+  loadDataFromBackend() {
+    // HTTP hívás a backend felé
+    this.http.get<{ startDate: string, days: number }>('your-backend-url-here')
+      .subscribe(data => {
+        if (this.scheduler) {
+          this.scheduler.startDate = DayPilot.Date.parse(data.startDate);
+          this.scheduler.days = data.days;
+          this.scheduler.update();
+        }
+      });
+  }
+}
+
+
+import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { DayPilot } from 'daypilot-pro-angular';
+
+@Component({
+  selector: 'app-my-scheduler',
+  templateUrl: './my-scheduler.component.html'
+})
+export class MySchedulerComponent implements AfterViewInit {
+
+  @ViewChild('scheduler', { static: false }) scheduler: DayPilot.Angular.SchedulerComponent | undefined;
+
+  config: any = {
+    timeHeaders: [
+      {
+        groupBy: "Month",
+      },
+      {
+        groupBy: "Day",
+        format: "d",
+      },
+    ],
+    scale: "Day",
+    days: DayPilot.Date.today().daysInMonth(),
+    startDate: DayPilot.Date.today().firstDayOfMonth(),
+    timeRangeSelectedHandling: "Enabled",
+    onTimeRangeSelected: async (args) => {
+      const scheduler = args.control;
+      const modal = await DayPilot.Modal.prompt("Create a new event:", "Event 1");
+      scheduler.clearSelection();
+      if (modal.canceled) { return; }
+      scheduler.events.add({
+        start: args.start,
+        end: args.end,
+        id: DayPilot.guid(),
+        resource: args.resource,
+        text: modal.result
+      });
+    },
+    eventMoveHandling: "Update",
+    onEventMoved: (args) => {
+      args.control.message("Event moved: " + args.e.text());
+    },
+    eventResizeHandling: "Update",
+    onEventResized: (args) => {
+      args.control.message("Event resized: " + args.e.text());
+    },
+    eventDeleteHandling: "Update",
+    onEventDeleted: (args) => {
+      args.control.message("Event deleted: " + args.e.text());
+    },
+    eventClickHandling: "Disabled",
+    eventHoverHandling: "Bubble",
+    bubble: new DayPilot.Bubble({
+      onLoad: (args) => {
+        args.html = "Event details";
+      }
+    }),
+    treeEnabled: true,
+  };
+
+  constructor(private http: HttpClient) { }
+
+  ngAfterViewInit() {
+    this.loadDataFromBackend();
+  }
+
+  loadDataFromBackend() {
+    // Például egy HTTP hívás a backend felé, ahol a startDate és a days érkezik
+    this.http.get<{ startDate: string, days: number }>('your-backend-url-here')
+      .subscribe(data => {
+        if (this.scheduler) {
+          // Frissítjük a config értékeit az adatokkal
+          this.config.startDate = DayPilot.Date.parse(data.startDate);
+          this.config.days = data.days;
+
+          // Frissítjük a scheduler nézetet az új beállításokkal
+          this.scheduler.update();
+        }
+      });
+  }
+}
+
+
+//ssr
+
+import { Component, Inject, PLATFORM_ID, AfterViewInit } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { DayPilot } from 'daypilot-pro-angular';
+
+@Component({
+  selector: 'app-my-scheduler',
+  templateUrl: './my-scheduler.component.html'
+})
+export class MySchedulerComponent implements AfterViewInit {
+
+  isBrowser: boolean;
+  config: any = {
+    // DayPilot konfiguráció...
+  };
+
+  @ViewChild('scheduler', { static: false }) scheduler: DayPilot.Angular.SchedulerComponent | undefined;
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object, private http: HttpClient) {
+    this.isBrowser = isPlatformBrowser(this.platformId); // Ellenőrzés, hogy böngészőben vagyunk-e
+  }
+
+  ngAfterViewInit() {
+    if (this.isBrowser) {
+      this.loadDataFromBackend();
+    }
+  }
+
+  loadDataFromBackend() {
+    if (this.isBrowser && this.scheduler) {
+      // Backendről jövő adatok betöltése és scheduler frissítése
+      this.http.get<{ startDate: string, days: number }>('your-backend-url-here')
+        .subscribe(data => {
+          this.config.startDate = DayPilot.Date.parse(data.startDate);
+          this.config.days = data.days;
+          this.scheduler.update();
+        });
+    }
+  }
+}
+
+<ng-container *ngIf="isBrowser">
+  <daypilot-scheduler #scheduler [config]="config" [events]="events"></daypilot-scheduler>
+</ng-container>
+
+
+
 
 
 
