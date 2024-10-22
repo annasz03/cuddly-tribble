@@ -295,3 +295,193 @@ export class ParentComponent {
   }
 }
 
+
+//k
+
+import { Component, Inject, PLATFORM_ID, OnInit } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+
+@Component({
+  selector: 'app-my-scheduler',
+  templateUrl: './my-scheduler.component.html'
+})
+export class MySchedulerComponent implements OnInit {
+
+  isBrowser: boolean;
+  schedulerConfig: any;
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId); // Ellenőrzi, hogy böngészőben fut-e a kód
+  }
+
+  async ngOnInit() {
+    if (this.isBrowser) {
+      // Dinamikusan importálja a DayPilot-ot csak a böngészőben
+      const { DayPilot } = await import('daypilot-pro-angular');
+
+      this.schedulerConfig = {
+        timeHeaders: [
+          { groupBy: "Month" },
+          { groupBy: "Day", format: "d" }
+        ],
+        startDate: DayPilot.Date.today().firstDayOfMonth(),
+        days: DayPilot.Date.today().daysInMonth(),
+        scale: "Day",
+        // további beállítások...
+      };
+    }
+  }
+}
+
+
+
+//2
+
+import { Component, Inject, PLATFORM_ID, AfterViewInit, NgZone, ChangeDetectorRef } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+
+@Component({
+  selector: 'app-my-scheduler',
+  templateUrl: './my-scheduler.component.html'
+})
+export class MySchedulerComponent implements AfterViewInit {
+
+  isBrowser: boolean = false;
+  schedulerConfig: any;
+
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private zone: NgZone,
+    private cdRef: ChangeDetectorRef
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
+
+  ngAfterViewInit() {
+    if (this.isBrowser) {
+      this.zone.runOutsideAngular(() => {
+        // Kliens oldali kód, például DayPilot inicializálás
+        const DayPilot = require('daypilot-pro-angular');
+
+        this.schedulerConfig = {
+          timeHeaders: [
+            { groupBy: "Month" },
+            { groupBy: "Day", format: "d" }
+          ],
+          startDate: DayPilot.Date.today().firstDayOfMonth(),
+          days: DayPilot.Date.today().daysInMonth(),
+          scale: "Day",
+          // további beállítások...
+        };
+
+        this.cdRef.detectChanges(); // Változások manuális nyomon követése
+      });
+    }
+  }
+}
+
+
+//3
+
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { CanActivate } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class BrowserGuard implements CanActivate {
+
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) { }
+
+  canActivate(): boolean {
+    return isPlatformBrowser(this.platformId); // Csak akkor engedélyez, ha böngészőben fut
+  }
+}
+
+//4
+import { Component, Inject, PLATFORM_ID, OnInit } from '@angular/core';
+import { TransferState, makeStateKey } from '@angular/platform-browser';
+import { isPlatformBrowser } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+
+const DATA_KEY = makeStateKey<string>('schedulerData');
+
+@Component({
+  selector: 'app-my-scheduler',
+  templateUrl: './my-scheduler.component.html'
+})
+export class MySchedulerComponent implements OnInit {
+
+  schedulerConfig: any;
+  isBrowser: boolean;
+
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private http: HttpClient,
+    private state: TransferState
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
+
+  ngOnInit() {
+    if (this.isBrowser) {
+      // Kliens oldalon - adatok betöltése a TransferState-ből vagy a HTTP-ből
+      const savedData = this.state.get(DATA_KEY, null);
+      if (savedData) {
+        this.schedulerConfig = JSON.parse(savedData);
+      } else {
+        this.loadSchedulerData();
+      }
+    } else {
+      // Szerver oldalon - adatok előkészítése és TransferState-be mentése
+      this.loadSchedulerData(true);
+    }
+  }
+
+  loadSchedulerData(isServer = false) {
+    this.http.get('your-backend-url').subscribe(data => {
+      this.schedulerConfig = data;
+      if (isServer) {
+        this.state.set(DATA_KEY, JSON.stringify(data));
+      }
+    });
+  }
+}
+
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { DataService } from './data.service';
+
+@Component({
+  selector: 'app-my-scheduler',
+  templateUrl: './my-scheduler.component.html'
+})
+export class MySchedulerComponent implements OnInit {
+
+  schedulerConfig: any;
+  events: any[] = [];
+
+  constructor(private dataService: DataService, private cdRef: ChangeDetectorRef) {}
+
+  ngOnInit(): void {
+    this.schedulerConfig = {
+      timeHeaders: [
+        { groupBy: 'Month' },
+        { groupBy: 'Day', format: 'd' }
+      ],
+      startDate: new DayPilot.Date('2023-10-01'),
+      days: 31,
+      scale: 'Day',
+      events: this.events,  // Események a DayPilot konfigurációban
+    };
+
+    // Feliratkozás az eseményekre
+    this.dataService.getEvents().subscribe((data) => {
+      this.events = data;  // Események frissítése
+      this.schedulerConfig.events = this.events;  // DayPilot konfiguráció frissítése
+      this.cdRef.detectChanges();  // Manuális változásfigyelés
+    });
+  }
+}
+
+
