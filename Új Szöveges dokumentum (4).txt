@@ -485,3 +485,55 @@ export class MySchedulerComponent implements OnInit {
 }
 
 
+//repeat
+
+import { Component, OnInit } from '@angular/core';
+import { DataService } from './data.service';
+import { of, timer } from 'rxjs';
+import { switchMap, retryWhen, delay, tap } from 'rxjs/operators';
+
+@Component({
+  selector: 'app-my-component',
+  templateUrl: './my-component.component.html',
+  styleUrls: ['./my-component.component.css']
+})
+export class MyComponent implements OnInit {
+  isReady: boolean = false;
+
+  constructor(private dataService: DataService) {}
+
+  ngOnInit() {
+    this.loadData();
+  }
+
+  loadData() {
+    this.dataService.getData().pipe(
+      // A válasz feldolgozása
+      tap(response => {
+        if (response.kesz) {
+          this.isReady = true;
+        }
+      }),
+      // Ismétlés, ha a `kész` nincs igaz.
+      retryWhen(errors =>
+        errors.pipe(
+          // Várakozás két másodpercet minden próbálkozás előtt
+          delay(2000),
+          // Addig ismétli, amíg a `isReady` változó nem lesz igaz
+          switchMap(() => this.isReady ? of(null) : timer(0))
+        )
+      )
+    ).subscribe(
+      response => {
+        if (this.isReady) {
+          console.log('A válasz sikeresen megérkezett:', response);
+        }
+      },
+      error => {
+        console.error('Hiba történt:', error);
+      }
+    );
+  }
+}
+
+
